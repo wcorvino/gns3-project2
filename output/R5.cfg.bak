@@ -1,12 +1,12 @@
 !Command: show running-config
-!Time: Wed Jan 20 21:24:22 2021
+!Time: Mon Dec 14 19:08:42 2020
 
 version 7.3(0)D1(1)
 power redundancy-mode redundant
 license grace-period
 
-hostname nx-osv-2
-vdc nx-osv-2 id 1
+hostname nx-osv-5
+vdc nx-osv-5 id 1
   limit-resource module-type m1 m1xl m2xl f2e 
   allocate interface Ethernet2/1-48
   allocate interface Ethernet3/1-48
@@ -20,15 +20,13 @@ vdc nx-osv-2 id 1
   limit-resource m6route-mem minimum 8 maximum 8
 
 feature telnet
-nv overlay evpn
 feature ospf
 feature bgp
-feature pim
 
 username admin password 5 $5$Otc7T0NC$K.ulnSZnSyXLrTGNBdtLgZJXEa8EeNx.BrdZ98XyK2C  role network-admin
 no password strength-check
 ip domain-lookup
-crypto key param rsa label nx-osv-2 modulus 1024 
+crypto key param rsa label nx-osv-5 modulus 1024 
 vlan dot1Q tag native
 system default switchport
 system jumbomtu 0
@@ -43,14 +41,8 @@ rmon event 5 log description INFORMATION(5) owner PMON@INFO
 snmp-server enable traps link
 snmp-server enable traps link cisco-xcvr-mon-status-chg
 
-ip pim rp-address 100.1.1.1 group-list 224.0.0.0/4
-ip pim ssm range 232.0.0.0/8
-ip pim anycast-rp 100.1.1.1 192.168.0.1
-ip pim anycast-rp 100.1.1.1 192.168.0.2
 vlan 1
 
-route-map permitall permit 10
-  set ip next-hop unchanged
 vrf context management
 hardware forwarding unicast trace
 
@@ -59,44 +51,32 @@ interface mgmt0
   description OOB Management
   duplex full
   vrf member management
-  ip address 10.255.1.51/16
+  ip address 10.255.1.54/16
 
 interface Ethernet2/1
-  description to nx-osv-3
+  description to nx-osv-1
   no switchport
-  mac-address fa16.3e00.0006
-  ip address 10.0.0.21/30
+  mac-address fa16.3e00.0011
+  ip address 10.0.0.14/30
   ip ospf network point-to-point
   ip router ospf 1 area 0.0.0.0
-  ip pim sparse-mode
   no shutdown
 
 interface Ethernet2/2
-  description to nx-osv-4
+  description to nx-osv-2
   no switchport
-  mac-address fa16.3e00.0007
-  ip address 10.0.0.25/30
+  mac-address fa16.3e00.0012
+  ip address 10.0.0.30/30
   ip ospf network point-to-point
   ip router ospf 1 area 0.0.0.0
-  ip pim sparse-mode
   no shutdown
 
 interface Ethernet2/3
-  description to nx-osv-5
-  no switchport
-  mac-address fa16.3e00.0008
-  ip address 10.0.0.29/30
-  ip ospf network point-to-point
-  ip router ospf 1 area 0.0.0.0
+  switchport
   no shutdown
 
 interface Ethernet2/4
-  description to nx-osv-6
-  no switchport
-  mac-address fa16.3e00.0009
-  ip address 10.0.0.33/30
-  ip ospf network point-to-point
-  ip router ospf 1 area 0.0.0.0
+  switchport
   no shutdown
 
 interface Ethernet2/5
@@ -661,43 +641,35 @@ interface Ethernet4/48
 
 interface loopback0
   description Loopback
-  ip address 192.168.0.2/32
+  ip address 192.168.0.5/32
   ip router ospf 1 area 0.0.0.0
-  ip pim sparse-mode
-
-interface loopback1
-  ip address 100.1.1.1/32
-  ip pim sparse-mode
 line console
 line vty
 boot kickstart bootflash:/titanium-d1-kickstart.7.3.0.D1.1.bin
 boot system bootflash:/titanium-d1.7.3.0.D1.1.bin 
 router ospf 1
-  router-id 192.168.0.2
-router bgp 65000
-  router-id 192.168.0.2
-  address-family l2vpn evpn
-    nexthop route-map permitall
-    retain route-target all
-  neighbor 10.0.0.22 remote-as 65001
-    address-family ipv4 unicast
-      allowas-in
-      disable-peer-as-check
-  neighbor 10.0.0.26 remote-as 65002
-    address-family ipv4 unicast
-      allowas-in
-      disable-peer-as-check
-  neighbor 192.168.0.3 remote-as 65001
+  router-id 192.168.0.5
+router bgp 1
+  router-id 192.168.0.5
+  address-family ipv4 unicast
+    network 192.168.0.5/32
+  neighbor 192.168.0.1 remote-as 1
+    description iBGP peer nx-osv-1
     update-source loopback0
-    ebgp-multihop 3
-    address-family l2vpn evpn
-      disable-peer-as-check
-      send-community extended
-      route-map permitall out
-  neighbor 192.168.0.4 remote-as 65002
+    address-family ipv4 unicast
+  neighbor 192.168.0.2 remote-as 1
+    description iBGP peer nx-osv-2
     update-source loopback0
-    ebgp-multihop 3
-    address-family l2vpn evpn
-      disable-peer-as-check
-      send-community extended
-      route-map permitall out
+    address-family ipv4 unicast
+  neighbor 192.168.0.3 remote-as 1
+    description iBGP peer nx-osv-3
+    update-source loopback0
+    address-family ipv4 unicast
+  neighbor 192.168.0.4 remote-as 1
+    description iBGP peer nx-osv-4
+    update-source loopback0
+    address-family ipv4 unicast
+  neighbor 192.168.0.6 remote-as 1
+    description iBGP peer nx-osv-6
+    update-source loopback0
+    address-family ipv4 unicast
