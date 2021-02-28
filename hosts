@@ -62,3 +62,7 @@ R6
 [MGMT]
 S1
 
+[EDGE-BORDER]
+VR1
+VR2
+
